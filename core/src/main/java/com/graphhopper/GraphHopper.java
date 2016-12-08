@@ -772,8 +772,9 @@ public class GraphHopper implements GraphHopperAPI {
             dataAccessType = DAType.MMAP_RO;
 
         GHDirectory dir = new GHDirectory(ghLocation, dataAccessType);
-        GraphExtension ext = encodingManager.needsTurnCostsSupport()
-                ? new TurnCostExtension() : new GraphExtension.NoOpExtension();
+        GraphExtension ext = encodingManager.needsTurnCostsSupport() ? new TurnCostExtension() : (
+                                encodingManager.roadAttributesEnabled() ? new RoadAttributeExtension() :
+                                new GraphExtension.NoOpExtension());
 
         if (chFactoryDecorator.isEnabled()) {
             initCHAlgoFactoryDecorator();

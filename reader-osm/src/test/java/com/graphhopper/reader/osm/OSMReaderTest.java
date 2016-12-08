@@ -64,6 +64,7 @@ public class OSMReaderTest {
     private final String fileNegIds = "test-osm-negative-ids.xml";
     private final String fileBarriers = "test-barriers.xml";
     private final String fileTurnRestrictions = "test-restrictions.xml";
+    private final String fileRoadAttributes = "test-road-attributes.xml";
     private final String dir = "./target/tmp/test-db";
     private CarFlagEncoder carEncoder;
     private BikeFlagEncoder bikeEncoder;
@@ -83,7 +84,8 @@ public class OSMReaderTest {
 
     GraphHopperStorage newGraph(String directory, EncodingManager encodingManager, boolean is3D, boolean turnRestrictionsImport) {
         return new GraphHopperStorage(new RAMDirectory(directory, false), encodingManager, is3D,
-                turnRestrictionsImport ? new TurnCostExtension() : new GraphExtension.NoOpExtension());
+                turnRestrictionsImport ? new TurnCostExtension() : (
+                        encodingManager.roadAttributesEnabled()? new RoadAttributeExtension() : new GraphExtension.NoOpExtension()));
     }
 
     InputStream getResource(String file) {
@@ -509,6 +511,57 @@ public class OSMReaderTest {
         costsFlags = tcStorage.getTurnCostFlags(edge10_11, n11, edge11_14);
         assertFalse(carEncoder.isTurnRestricted(costsFlags));
         assertTrue(bikeEncoder.isTurnRestricted(costsFlags));
+    }
+
+    @Test
+    public void testRoadAttributes() {
+        GraphHopper hopper = new GraphHopperTest(fileRoadAttributes);
+        hopper.getEncodingManager().enableRoadAttributes( true );
+        hopper.importOrLoad();
+
+        Graph graph = hopper.getGraphHopperStorage();
+        assertEquals(5, graph.getNodes());
+        assertTrue(graph.getExtension() instanceof RoadAttributeExtension);
+        RoadAttributeExtension roadAttributes = (RoadAttributeExtension) graph.getExtension();
+
+        int na = AbstractGraphStorageTester.getIdOf(graph, 11.1, 50);
+        int nb = AbstractGraphStorageTester.getIdOf(graph, 12, 51);
+        int nc = AbstractGraphStorageTester.getIdOf(graph, 11.2, 52);
+        int nd = AbstractGraphStorageTester.getIdOf(graph, 11.3, 51);
+        int ne = AbstractGraphStorageTester.getIdOf( graph, 10, 51 );
+
+        EdgeIteratorState edge_ab = GHUtility.getEdge(graph, na, nb);
+        EdgeIteratorState edge_ad = GHUtility.getEdge(graph, na, nd);
+        EdgeIteratorState edge_ae = GHUtility.getEdge(graph, na, ne);
+        EdgeIteratorState edge_bc = GHUtility.getEdge(graph, nb, nc);
+        EdgeIteratorState edge_bd = GHUtility.getEdge(graph, nb, nd);
+        EdgeIteratorState edge_cd = GHUtility.getEdge(graph, nc, nd);
+        EdgeIteratorState edge_ce = GHUtility.getEdge(graph, nc, ne);
+        EdgeIteratorState edge_de = GHUtility.getEdge(graph, nd, ne);
+
+        assertEquals(400, roadAttributes.getRoadAttribute(edge_ab, RoadAttributeExtension.Type.HEIGHT));
+        assertEquals(1600, roadAttributes.getRoadAttribute(edge_ab, RoadAttributeExtension.Type.WIDTH));
+        assertEquals(2000, roadAttributes.getRoadAttribute(edge_ab, RoadAttributeExtension.Type.LENGTH));
+        assertEquals(4400, roadAttributes.getRoadAttribute(edge_ab, RoadAttributeExtension.Type.WEIGHT));
+
+        assertEquals(400, roadAttributes.getRoadAttribute(edge_bc, RoadAttributeExtension.Type.HEIGHT));
+        assertEquals(1600, roadAttributes.getRoadAttribute(edge_bc, RoadAttributeExtension.Type.WIDTH));
+        assertEquals(2000, roadAttributes.getRoadAttribute(edge_bc, RoadAttributeExtension.Type.LENGTH));
+        assertEquals(4400, roadAttributes.getRoadAttribute(edge_bc, RoadAttributeExtension.Type.WEIGHT));
+
+        assertEquals(440, roadAttributes.getRoadAttribute(edge_ad, RoadAttributeExtension.Type.HEIGHT));
+        assertEquals(1750, roadAttributes.getRoadAttribute(edge_ad, RoadAttributeExtension.Type.WIDTH));
+        assertEquals(1950, roadAttributes.getRoadAttribute(edge_ad, RoadAttributeExtension.Type.LENGTH));
+        assertEquals(17500, roadAttributes.getRoadAttribute(edge_ad, RoadAttributeExtension.Type.WEIGHT));
+
+        assertEquals(440, roadAttributes.getRoadAttribute(edge_cd, RoadAttributeExtension.Type.HEIGHT));
+        assertEquals(1750, roadAttributes.getRoadAttribute(edge_cd, RoadAttributeExtension.Type.WIDTH));
+        assertEquals(1950, roadAttributes.getRoadAttribute(edge_cd, RoadAttributeExtension.Type.LENGTH));
+        assertEquals(17500, roadAttributes.getRoadAttribute(edge_cd, RoadAttributeExtension.Type.WEIGHT));
+
+        assertEquals(2000, roadAttributes.getRoadAttribute(edge_bd, RoadAttributeExtension.Type.LENGTH));
+        assertEquals(2000, roadAttributes.getRoadAttribute(edge_de, RoadAttributeExtension.Type.LENGTH));
+
     }
 
     @Test

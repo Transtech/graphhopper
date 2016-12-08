@@ -413,6 +413,9 @@ public class OSMReader implements DataReader {
 
         for (EdgeIteratorState edge : createdEdges) {
             encodingManager.applyWayTags(way, edge);
+            if (encodingManager.roadAttributesEnabled()) {
+                applyRoadAttributes(way, edge);
+            }
         }
     }
 
@@ -465,6 +468,81 @@ public class OSMReader implements DataReader {
             inExplorerMap.put(encoder, edgeInExplorer);
         }
         return turnRelation.getRestrictionAsEntries(encoder, edgeOutExplorer, edgeInExplorer, this);
+    }
+
+    public void applyRoadAttributes(ReaderWay way, EdgeIteratorState edge) {
+        List<String> heightTags = Arrays.asList("maxheight", "maxheight:physical");
+
+        if (hasTags(way, heightTags))
+            applyMeters(way, edge, heightTags, RoadAttributeExtension.Type.HEIGHT);
+
+        List<String> widthTags = Arrays.asList("maxwidth", "maxwidth:physical");
+
+        if (hasTags(way, widthTags))
+            applyMeters(way, edge, widthTags, RoadAttributeExtension.Type.WIDTH);
+
+        List<String> lengthTags = Arrays.asList("maxlength", "maxlength:psv", "maxlength:hgv");
+
+        if (hasTags(way, lengthTags))
+            applyMeters(way, edge, lengthTags, RoadAttributeExtension.Type.LENGTH);
+
+        List<String> weightTags = Arrays.asList("maxweight", "maxgcweight");
+
+        if (hasTags(way, weightTags))
+            applyTonnes(way, edge, weightTags, RoadAttributeExtension.Type.WEIGHT);
+
+    }
+
+    private boolean hasTags(ReaderWay way, List<String> keys) {
+        for (String key: keys)
+            if (way.hasTag(key)) return true;
+
+        return false;
+    }
+
+    private void applyMeters(ReaderWay way, EdgeIteratorState edge, List<String> keys, RoadAttributeExtension.Type type) {
+        String value = null;
+
+        for (String key: keys) {
+            value = way.getTag(key);
+            if (!Helper.isEmpty(value)) break;
+        }
+
+        if (Helper.isEmpty(value)) return;
+
+        GraphExtension extendedStorage = graph.getExtension();
+        if (extendedStorage instanceof RoadAttributeExtension) {
+            RoadAttributeExtension roadAttributes = (RoadAttributeExtension) extendedStorage;
+            roadAttributes.addRoadAttribute(edge, type, stringToCentimeter(value));
+        }
+    }
+
+    private void applyTonnes(ReaderWay way, EdgeIteratorState edge, List<String> keys, RoadAttributeExtension.Type type) {
+        String value = null;
+
+        for (String key: keys) {
+            value = way.getTag(key);
+            if (!Helper.isEmpty(value)) break;
+        }
+
+        if (Helper.isEmpty(value)) return;
+
+        GraphExtension extendedStorage = graph.getExtension();
+        if (extendedStorage instanceof RoadAttributeExtension) {
+            RoadAttributeExtension roadAttributes = (RoadAttributeExtension) extendedStorage;
+            roadAttributes.addRoadAttribute(edge, type, stringToKilogram(value));
+        }
+
+    }
+
+    private int stringToCentimeter(String value) {
+        double val = Double.parseDouble(value);
+        return (int)(val * 100);
+    }
+
+    private int stringToKilogram(String value) {
+        double val = Double.parseDouble(value);
+        return (int)(val * 1000);
     }
 
     /**

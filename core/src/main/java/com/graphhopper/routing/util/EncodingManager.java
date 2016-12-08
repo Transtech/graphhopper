@@ -50,6 +50,7 @@ public class EncodingManager {
     private int nextRelBit = 0;
     private int nextTurnBit = 0;
     private boolean enableInstructions = true;
+    private boolean roadAttributesEnabled = false;
     private String preferredLanguage = "";
 
     /**
@@ -409,5 +410,17 @@ public class EncodingManager {
                 return true;
         }
         return false;
+    }
+
+    public EncodingManager enableRoadAttributes(boolean roadAttributesEnabled) {
+        if ( needsTurnCostsSupport() && roadAttributesEnabled )
+            throw new UnsupportedOperationException( "Current version does not support having both TurnCostExtension and RoadAttributeExtension" );
+
+        this.roadAttributesEnabled = roadAttributesEnabled;
+        return this;
+    }
+
+    public boolean roadAttributesEnabled() {
+        return roadAttributesEnabled;
     }
 }

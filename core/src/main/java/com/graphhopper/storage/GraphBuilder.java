@@ -100,6 +100,8 @@ public class GraphBuilder {
         GraphHopperStorage graph;
         if (encodingManager.needsTurnCostsSupport() || singleCHWeighting == null)
             graph = new GraphHopperStorage(dir, encodingManager, elevation, new TurnCostExtension());
+        else if (encodingManager.roadAttributesEnabled())
+            graph = new GraphHopperStorage(dir, encodingManager, elevation, new RoadAttributeExtension());
         else
             graph = new GraphHopperStorage(Arrays.asList(singleCHWeighting), dir, encodingManager, elevation, new TurnCostExtension.NoOpExtension());
 
