@@ -177,9 +177,21 @@
     </dependencies>
 
     <distributionManagement>
+<!--
         <snapshotRepository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+-->
+        <repository>
+            <id>release</id>
+            <name>release</name>
+            <url>http://maven.transtech.net.au:8081/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshot</id>
+            <name>snapshot</name>
+            <url>http://maven.transtech.net.au:8081/artifactory/libs-snapshot-local</url>
         </snapshotRepository>
     </distributionManagement>
 
