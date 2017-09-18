@@ -33,6 +33,7 @@ import com.graphhopper.storage.index.LocationIndex;
 import com.graphhopper.storage.index.LocationIndexTree;
 import com.graphhopper.util.Parameters;
 import com.graphhopper.util.StopWatch;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -120,6 +121,7 @@ public class RoutingAlgorithmIT {
         return prepare;
     }
 
+    @Ignore
     @Test
     public void testPerformance() throws IOException {
         int N = 10;

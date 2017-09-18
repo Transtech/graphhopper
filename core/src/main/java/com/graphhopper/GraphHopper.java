@@ -806,7 +806,7 @@ public class GraphHopper implements GraphHopperAPI {
         return lmFactoryDecorator;
     }
 
-    private void initLMAlgoFactoryDecorator() {
+    protected void initLMAlgoFactoryDecorator() {
         if (lmFactoryDecorator.hasWeightings())
             return;
 
