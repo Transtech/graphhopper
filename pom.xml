@@ -173,13 +173,14 @@
         </dependency>
     </dependencies>
 
-    <distributionManagement>
 <!--
+    <distributionManagement>
+&lt;!&ndash;
         <snapshotRepository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
--->
+&ndash;&gt;
         <repository>
             <id>release</id>
             <name>release</name>
@@ -191,6 +192,7 @@
             <url>http://maven.transtech.net.au:8081/artifactory/libs-snapshot-local</url>
         </snapshotRepository>
     </distributionManagement>
+-->
 
     <!-- mvn clean deploy -P release -->
     <profiles>
